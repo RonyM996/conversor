@@ -1,0 +1,118 @@
+package com.ucenm.conversor.db
+
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import com.ucenm.conversor.data.Conversion
+import com.ucenm.conversor.data.Rate
+
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB", null, 1) {
+
+    override fun onCreate(db: SQLiteDatabase) {
+        // Tabla Rates
+        val createRatesTable = """
+            CREATE TABLE rates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                from_code TEXT,
+                to_code TEXT,
+                rate REAL,
+                is_custom INTEGER DEFAULT 0
+            )
+        """.trimIndent()
+
+        // Tabla Conversions (Historial)
+        val createConversionsTable = """
+            CREATE TABLE conversions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                from_code TEXT,
+                to_code TEXT,
+                amount REAL,
+                result REAL,
+                date TEXT,
+                is_favorite INTEGER DEFAULT 0
+            )
+        """.trimIndent()
+
+        db.execSQL(createRatesTable)
+        db.execSQL(createConversionsTable)
+
+        // Datos semilla (Ejemplo inicial si la BD está vacía)
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('HNL', 'USD', 0.040)") // Lempira a Dólar
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('CRC', 'USD', 0.0019)") // Colón a Dólar
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS rates")
+        db.execSQL("DROP TABLE IF EXISTS conversions")
+        onCreate(db)
+    }
+
+    // --- MÉTODOS PARA EL CONVERSOR ---
+
+    fun getRate(from: String, to: String): Double {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT rate FROM rates WHERE from_code=? AND to_code=?", arrayOf(from, to))
+        var rate = 0.0
+        if (cursor.moveToFirst()) {
+            rate = cursor.getDouble(0)
+        }
+        cursor.close()
+        return rate
+    }
+
+    fun addConversion(conversion: Conversion): Long {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("from_code", conversion.fromCode)
+            put("to_code", conversion.toCode)
+            put("amount", conversion.amount)
+            put("result", conversion.result)
+            put("date", conversion.date)
+            put("is_favorite", if (conversion.isFavorite) 1 else 0)
+        }
+        return db.insert("conversions", null, values)
+    }
+
+    // --- MÉTODOS PARA EL RETO ADICIONAL ---
+
+    fun addCustomRate(rate: Rate): Long {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("from_code", rate.fromCode)
+            put("to_code", rate.toCode)
+            put("rate", rate.rate)
+            put("is_custom", 1)
+        }
+        return db.insert("rates", null, values)
+    }
+
+    fun getAllHistory(): List<Conversion> {
+        val list = ArrayList<Conversion>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM conversions ORDER BY id DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(Conversion(
+                    id = cursor.getInt(0),
+                    fromCode = cursor.getString(1),
+                    toCode = cursor.getString(2),
+                    amount = cursor.getDouble(3),
+                    result = cursor.getDouble(4),
+                    date = cursor.getString(5),
+                    isFavorite = cursor.getInt(6) == 1
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun toggleFavorite(id: Int, isFav: Boolean) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("is_favorite", if (isFav) 1 else 0)
+        }
+        db.update("conversions", values, "id=?", arrayOf(id.toString()))
+    }
+}

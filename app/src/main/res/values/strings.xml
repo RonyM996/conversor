@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">conversor</string>
+    <string name="app_conversor">Conversor Centroamericano</string>
+    <string name="selecciona_moneda_origen">Selecciona moneda origen:</string>
+    <string name="ingresa_el_monto">Ingresa el monto</string>
+    <string name="convertir_a_usd">Convertir a USD</string>
+    <string name="ver_historial">Ver Historial</string>
+    <string name="REsultadp">Resultado de la Conversión</string>
+    <string name="aqu_aparecer_el_resultado">Aquí aparecerá el resultado...</string>
+    <string name="aqui_aparecer_el_resultado">Aqui_aparecera_el_resultado</string>
+    <string name="volver">Volver</string>
+</resources>
