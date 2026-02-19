@@ -38,8 +38,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         db.execSQL(createConversionsTable)
 
         // Datos semilla (Ejemplo inicial si la BD está vacía)
-        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('HNL', 'USD', 0.040)") // Lempira a Dólar
-        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('CRC', 'USD', 0.0019)") // Colón a Dólar
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('HNL', 'USD', 0.040)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('USD', 'HNL', 26.4849)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('EUR', 'USD', 1.18)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('GTQ', 'USD', 0.130)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('NIO', 'USD', 0.027)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('CRC', 'USD', 0.002)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('SVC', 'USD', 1)")
+        db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('PAB', 'USD', 1)")
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -74,7 +81,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         return db.insert("conversions", null, values)
     }
 
-    // --- MÉTODOS PARA EL RETO ADICIONAL ---
+    //  ADICIONAL ---
 
     fun addCustomRate(rate: Rate): Long {
         val db = this.writableDatabase

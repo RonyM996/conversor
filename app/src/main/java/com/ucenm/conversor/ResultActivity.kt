@@ -13,26 +13,32 @@ class ResultActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializar el binding
+        // 1. Inicializar el binding
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //  Recuperar los datos que se enviaron desde la otra pantalla
+        // 2. Recuperar los datos que se enviaron desde el MainActivity
         val amount = intent.getDoubleExtra("AMOUNT", 0.0)
         val result = intent.getDoubleExtra("RESULT", 0.0)
         val rate = intent.getDoubleExtra("RATE", 0.0)
         val from = intent.getStringExtra("FROM") ?: ""
 
-        // 4. Mostrar el texto en el TextView (Asegúrate de tener el ID correcto en el XML)
+        // 3. MEJORA: Formatear los números para mostrar solo 2 decimales (y 4 para la tasa)
+        val formattedAmount = String.format("%.2f", amount)
+        val formattedResult = String.format("%.2f", result)
+        val formattedRate = String.format("%.4f", rate)
+
+        // 4. Mostrar el texto formateado en el TextView
         binding.txtResultado.text = """
-            Monto: $amount $from
-            Tasa aplicada: $rate
+            Monto: $formattedAmount $from
+            Tasa aplicada: $formattedRate
             -----------------------
-            Total: $result USD
+            Total: $formattedResult USD
         """.trimIndent()
 
-        // 5. Configurar botón para volver (Opcional)
+        // 5. Configurar botón para volver
         binding.btnVolver.setOnClickListener {
+            // finish() destruye esta actividad y te devuelve a la anterior
             finish()
         }
     }
