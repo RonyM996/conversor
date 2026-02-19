@@ -78,6 +78,11 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Por favor, ingresa un monto", Toast.LENGTH_SHORT).show()
             }
         }
+        binding.btnVerHistorial.setOnClickListener {
+            // Reemplaza "HistorialActivity" con el nombre real de tu pantalla de historial
+            val intent = Intent(this, HistorialActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     // 4. (Opcional pero recomendado) Cerrar la base de datos cuando la app se destruye

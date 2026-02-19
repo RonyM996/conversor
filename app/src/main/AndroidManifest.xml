@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Conversor">
         <activity
+            android:name=".HistorialActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultActivity"
             android:exported="false" />
         <activity
