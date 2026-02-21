@@ -1,6 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#043942"
+    android:backgroundTint="#0DA6E9"
+    android:foregroundTint="#872020"
     android:orientation="vertical"
     android:padding="24dp">
 
@@ -8,8 +11,12 @@
         android:id="@+id/etNombreMoneda"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="#870404"
         android:hint="Nombre de la moneda (ej. Lempira)"
-        android:inputType="textCapWords" />
+        android:inputType="textCapWords"
+        android:textColor="#020101"
+        android:textColorHighlight="#0F0D0D"
+        android:textColorHint="#2F2727" />
 
     <EditText
         android:id="@+id/etCodigoMoneda"
@@ -18,7 +25,10 @@
         android:layout_marginTop="8dp"
         android:hint="Código (ej. HNL)"
         android:inputType="textCapCharacters"
-        android:maxLength="3" />
+        android:maxLength="3"
+        android:textColor="#000000"
+        android:textColorHighlight="#181313"
+        android:textColorHint="#1B1010" />
 
     <EditText
         android:id="@+id/etTasaCambio"
@@ -26,6 +36,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="Tasa de cambio (respecto a tu base)"
-        android:inputType="numberDecimal" />
+        android:inputType="numberDecimal"
+        android:textColor="#242020"
+        android:textColorHighlight="#261919"
+        android:textColorHint="#241F1F"
+        android:textColorLink="#1B0707" />
 
 </LinearLayout>
