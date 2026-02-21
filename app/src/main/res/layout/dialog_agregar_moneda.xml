@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <EditText
+        android:id="@+id/etNombreMoneda"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre de la moneda (ej. Lempira)"
+        android:inputType="textCapWords" />
+
+    <EditText
+        android:id="@+id/etCodigoMoneda"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Código (ej. HNL)"
+        android:inputType="textCapCharacters"
+        android:maxLength="3" />
+
+    <EditText
+        android:id="@+id/etTasaCambio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Tasa de cambio (respecto a tu base)"
+        android:inputType="numberDecimal" />
+
+</LinearLayout>

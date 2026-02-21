@@ -10,7 +10,6 @@ import com.ucenm.conversor.data.Rate
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB", null, 1) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        // Tabla Rates
         val createRatesTable = """
             CREATE TABLE rates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +20,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
             )
         """.trimIndent()
 
-        // Tabla Conversions (Historial)
         val createConversionsTable = """
             CREATE TABLE conversions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +35,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         db.execSQL(createRatesTable)
         db.execSQL(createConversionsTable)
 
-        // Datos semilla (Ejemplo inicial si la BD está vacía)
+        // Datos semilla
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('HNL', 'USD', 0.040)")
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('USD', 'HNL', 26.4849)")
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('EUR', 'USD', 1.18)")
@@ -46,7 +44,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('CRC', 'USD', 0.002)")
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('SVC', 'USD', 1)")
         db.execSQL("INSERT INTO rates (from_code, to_code, rate) VALUES ('PAB', 'USD', 1)")
-
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -54,8 +51,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         db.execSQL("DROP TABLE IF EXISTS conversions")
         onCreate(db)
     }
-
-    // --- MÉTODOS PARA EL CONVERSOR ---
 
     fun getRate(from: String, to: String): Double {
         val db = this.readableDatabase
@@ -81,7 +76,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         return db.insert("conversions", null, values)
     }
 
-    //  ADICIONAL ---
+    // --- MÉTODOS DEL RETO ADICIONAL ---
 
     fun addCustomRate(rate: Rate): Long {
         val db = this.writableDatabase
@@ -97,7 +92,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
     fun getAllHistory(): List<Conversion> {
         val list = ArrayList<Conversion>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM conversions ORDER BY id DESC", null)
+        val cursor = db.rawQuery("SELECT * FROM conversions ORDER BY is_favorite DESC, id DESC", null)
         if (cursor.moveToFirst()) {
             do {
                 list.add(Conversion(
@@ -121,5 +116,25 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
             put("is_favorite", if (isFav) 1 else 0)
         }
         db.update("conversions", values, "id=?", arrayOf(id.toString()))
+    }
+
+    fun getAvailableCurrencies(): List<String> {
+        val list = ArrayList<String>()
+        val db = this.readableDatabase
+        val query = """
+            SELECT DISTINCT from_code FROM rates
+            UNION
+            SELECT DISTINCT to_code FROM rates
+        """.trimIndent()
+
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(cursor.getString(0))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
     }
 }

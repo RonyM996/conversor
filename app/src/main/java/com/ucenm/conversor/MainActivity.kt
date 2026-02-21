@@ -1,12 +1,12 @@
 package com.ucenm.conversor
 
-import android.R
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.ucenm.conversor.R
 import com.ucenm.conversor.data.Conversion
 import com.ucenm.conversor.databinding.ActivityMainBinding
 import com.ucenm.conversor.db.DatabaseHelper
@@ -16,10 +16,8 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
-    // 1. Declaramos las variables a nivel de clase
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbHelper: DatabaseHelper
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,20 +27,15 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //Inicializamos la base de datos
+        // Inicializamos la base de datos
         dbHelper = DatabaseHelper(this)
 
-        val monedasOrigen = arrayOf("HNL", "USD", "EUR", "GTQ", "NIO", "CRC", "SVC", "PAV",)
 
-        // 2. Creas el adaptador que le da el formato visual a esa lista
-        val adapter = ArrayAdapter(this, R.layout.simple_spinner_dropdown_item, monedasOrigen)
-
-        // 3. Le asignas el adaptador a tu Spinner
-        binding.spinnerFrom.adapter = adapter
+        actualizarSpinner()
 
         binding.btnConvertir.setOnClickListener {
             val amountStr = binding.etAmount.text.toString()
-            val fromCurrency = binding.spinnerFrom.selectedItem.toString() // Ej: "HNL"
+            val fromCurrency = binding.spinnerFrom.selectedItem.toString()
             val toCurrency = "USD"
 
             if (amountStr.isNotEmpty()) {
@@ -52,7 +45,6 @@ class MainActivity : AppCompatActivity() {
                 if (rate > 0) {
                     val result = amount * rate
 
-                    // Guardar en historial
                     val conversion = Conversion(
                         fromCode = fromCurrency,
                         toCode = toCurrency,
@@ -74,18 +66,69 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Tasa de cambio no encontrada", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                // Agregué esta validación para evitar errores si el usuario presiona el botón sin escribir nada
                 Toast.makeText(this, "Por favor, ingresa un monto", Toast.LENGTH_SHORT).show()
             }
         }
+
         binding.btnVerHistorial.setOnClickListener {
-            // Reemplaza "HistorialActivity" con el nombre real de tu pantalla de historial
             val intent = Intent(this, HistorialActivity::class.java)
             startActivity(intent)
         }
+
+
+        binding.btnAgregarMoneda.setOnClickListener { mostrarDialogoAgregarMoneda() }
     }
 
-    // 4. (Opcional pero recomendado) Cerrar la base de datos cuando la app se destruye
+
+
+    private fun actualizarSpinner() {
+        // Obtenemos la lista dinámica
+        val monedasDisponibles = dbHelper.getAvailableCurrencies()
+
+        // Usamos android.R.layout explícitamente
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, monedasDisponibles)
+        binding.spinnerFrom.adapter = adapter
+    }
+
+
+    private fun mostrarDialogoAgregarMoneda() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_moneda, null)
+        val etCodigo = dialogView.findViewById<android.widget.EditText>(R.id.etCodigoMoneda)
+        val etTasa = dialogView.findViewById<android.widget.EditText>(R.id.etTasaCambio)
+
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Agregar Moneda Personalizada")
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                val codigo = etCodigo.text.toString().uppercase()
+                val tasaStr = etTasa.text.toString()
+
+                if (codigo.isNotEmpty() && tasaStr.isNotEmpty()) {
+                    val tasa = tasaStr.toDouble()
+
+                    val nuevaTasa = com.ucenm.conversor.data.Rate(
+                        fromCode = codigo,
+                        toCode = "USD",
+                        rate = tasa
+                    )
+
+                    val idGuardado = dbHelper.addCustomRate(nuevaTasa)
+
+                    if (idGuardado != -1L) {
+                        Toast.makeText(this, "¡Moneda agregada con éxito!", Toast.LENGTH_SHORT).show()
+                        // ¡Actualizamos el Spinner inmediatamente!
+                        actualizarSpinner()
+                    } else {
+                        Toast.makeText(this, "Error al guardar en la base de datos", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Por favor, llena el código y la tasa", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
     override fun onDestroy() {
         dbHelper.close()
         super.onDestroy()
