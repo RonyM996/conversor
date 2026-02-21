@@ -7,16 +7,19 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.ucenm.conversor.data.Conversion
 import com.ucenm.conversor.data.Rate
 
-class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB", null, 1) {
+// Cambiamos la versión a 2 para que se ejecute onUpgrade y se actualicen las tablas
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
+        // Agregada la columna is_favorite a la tabla rates
         val createRatesTable = """
             CREATE TABLE rates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 from_code TEXT,
                 to_code TEXT,
                 rate REAL,
-                is_custom INTEGER DEFAULT 0
+                is_custom INTEGER DEFAULT 0,
+                is_favorite INTEGER DEFAULT 0 
             )
         """.trimIndent()
 
@@ -54,7 +57,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
 
     fun getRate(from: String, to: String): Double {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT rate FROM rates WHERE from_code=? AND to_code=?", arrayOf(from, to))
+        val cursor =
+            db.rawQuery("SELECT rate FROM rates WHERE from_code=? AND to_code=?", arrayOf(from, to))
         var rate = 0.0
         if (cursor.moveToFirst()) {
             rate = cursor.getDouble(0)
@@ -76,8 +80,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         return db.insert("conversions", null, values)
     }
 
-    // --- MÉTODOS DEL RETO ADICIONAL ---
-
     fun addCustomRate(rate: Rate): Long {
         val db = this.writableDatabase
         val values = ContentValues().apply {
@@ -92,18 +94,21 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
     fun getAllHistory(): List<Conversion> {
         val list = ArrayList<Conversion>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM conversions ORDER BY is_favorite DESC, id DESC", null)
+        val cursor =
+            db.rawQuery("SELECT * FROM conversions ORDER BY is_favorite DESC, id DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                list.add(Conversion(
-                    id = cursor.getInt(0),
-                    fromCode = cursor.getString(1),
-                    toCode = cursor.getString(2),
-                    amount = cursor.getDouble(3),
-                    result = cursor.getDouble(4),
-                    date = cursor.getString(5),
-                    isFavorite = cursor.getInt(6) == 1
-                ))
+                list.add(
+                    Conversion(
+                        id = cursor.getInt(0),
+                        fromCode = cursor.getString(1),
+                        toCode = cursor.getString(2),
+                        amount = cursor.getDouble(3),
+                        result = cursor.getDouble(4),
+                        date = cursor.getString(5),
+                        isFavorite = cursor.getInt(6) == 1
+                    )
+                )
             } while (cursor.moveToNext())
         }
         cursor.close()
@@ -132,6 +137,34 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "CurrencyDB",
         if (cursor.moveToFirst()) {
             do {
                 list.add(cursor.getString(0))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+
+    // --- MÉTODOS PARA ACCESO RÁPIDO A FAVORITOS ---
+
+    fun getFavoriteConversions(): List<Conversion> {
+        val list = ArrayList<Conversion>()
+        val db = this.readableDatabase
+        val cursor =
+            db.rawQuery("SELECT * FROM conversions WHERE is_favorite = 1 ORDER BY id DESC", null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(
+                    Conversion(
+                        id = cursor.getInt(0),
+                        fromCode = cursor.getString(1),
+                        toCode = cursor.getString(2),
+                        amount = cursor.getDouble(3),
+                        result = cursor.getDouble(4),
+                        date = cursor.getString(5),
+                        isFavorite = true
+                    )
+                )
             } while (cursor.moveToNext())
         }
         cursor.close()

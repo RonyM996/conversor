@@ -7,5 +7,5 @@ data class Conversion(
     val amount: Double,
     val result: Double,
     val date: String,
-    val isFavorite: Boolean = false // Para el reto de favoritos
+    var isFavorite: Boolean = false // Para el reto de favoritos
 )
